@@ -1,47 +1,58 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+import AppSidebar from '@/components/layout/AppSidebar.vue'
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <div class="app-layout">
+    <AppSidebar />
+    
+    <div class="content-wrapper">
+      <RouterView v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </RouterView>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.content-wrapper {
+  flex: 1;
+  margin-left: 260px; /* Match Sidebar width */
+  background: var(--color-bg);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+@media (max-width: 768px) {
+  .content-wrapper {
+    margin-left: 0;
+    padding-bottom: 80px; /* Space for bottom nav if we possessed one */
   }
+}
 
-  .logo {
-    margin: 0 2rem 0 0;
-  }
+/* Page Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>

@@ -7,7 +7,7 @@ import { storeToRefs } from 'pinia';
 import type { Task } from '@/types';
 
 const props = defineProps<{
-  initialData?: Task;
+  initialData?: Partial<Task>;
 }>();
 
 const emit = defineEmits<{
@@ -17,13 +17,15 @@ const emit = defineEmits<{
 
 
 const store = useTaskStore();
+const { projects } = storeToRefs(store);
 
 // Validation Schema
 const schema = toTypedSchema(z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(1, 'Description is required'),
   priority: z.enum(['low', 'medium', 'high']),
-  status: z.enum(['todo', 'in-progress', 'done']) // Added status for editing scenario
+  projectId: z.string().min(1, 'Please select a project'),
+  status: z.enum(['todo', 'in-progress', 'done']) 
 }));
 
 // Form Setup
@@ -33,6 +35,7 @@ const { handleSubmit, errors, isSubmitting } = useForm({
     title: props.initialData?.title || '',
     description: props.initialData?.description || '',
     priority: props.initialData?.priority || 'medium',
+    projectId: props.initialData?.projectId || (projects.value[0]?.id || ''),
     status: props.initialData?.status || 'todo'
   }
 });
@@ -41,6 +44,7 @@ const { handleSubmit, errors, isSubmitting } = useForm({
 const { value: title } = useField<string>('title');
 const { value: description } = useField<string>('description');
 const { value: priority } = useField<string>('priority');
+const { value: projectId } = useField<string>('projectId');
 
 
 const handleFormSubmit = handleSubmit((values) => {
@@ -79,7 +83,16 @@ const handleFormSubmit = handleSubmit((values) => {
 
 
     <div class="row">
-      
+      <!-- Project -->
+      <div class="form-group">
+        <label for="project">Project</label>
+        <select id="project" v-model="projectId">
+          <option v-for="proj in projects" :key="proj.id" :value="proj.id">
+            {{ proj.name }}
+          </option>
+        </select>
+        <span v-if="errors.projectId" class="error-msg">{{ errors.projectId }}</span>
+      </div>
 
       <!-- Priority -->
       <div class="form-group">

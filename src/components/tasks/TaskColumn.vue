@@ -10,7 +10,7 @@ const props = defineProps<{
   title: string;
   tasks: Task[];
   statusColor?: string;
-  columnStatus: Task['status']; // Needed to know which column we dropped into
+  columnStatus: Task['status']; 
 }>();
 
 const emit = defineEmits<{
@@ -77,7 +77,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .task-column {
-    min-width: 85vw; /* Show mostly one column to encourage focus but hint at others with the edge */
+    min-width: 100%; /* Fit the container */
   }
 }
 
@@ -145,7 +145,7 @@ onUnmounted(() => {
   background: transparent;
 }
 
-/* Drag & Drop Ghost */
+/* Drag & Drop */
 .ghost-card {
   opacity: 0.5;
   background: var(--color-bg-mute);

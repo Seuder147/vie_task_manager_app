@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { LayoutDashboard, LogOut } from 'lucide-vue-next';
+import { LayoutDashboard, LogOut, X } from 'lucide-vue-next';
+import { useUIStore } from '@/stores/ui';
+
+const uiStore = useUIStore();
 </script>
 
 <template>
-  <aside class="sidebar">
+  <div v-if="uiStore.isSidebarOpen" class="sidebar-overlay" @click="uiStore.closeSidebar"></div>
+  <aside class="sidebar" :class="{ 'mobile-open': uiStore.isSidebarOpen }">
     <div class="brand">
-      <div class="brand-icon">
-        <LayoutDashboard class="text-white" :size="24" />
-      </div>
-      <span class="brand-text">Your Task Manager</span>
+      <img src="@/assets/logo.png" alt="Logo" />
+      <span class="brand-text">Your Favourite Task Manager</span>
+      <button class="close-btn mobile-only" @click="uiStore.closeSidebar">
+        <X :size="20" />
+      </button>
     </div>
 
     <nav class="nav-menu">
@@ -41,7 +46,7 @@ import { LayoutDashboard, LogOut } from 'lucide-vue-next';
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
+  padding: 0.1rem 1.5rem 1.5rem;
   position: fixed;
   left: 0;
   top: 0;
@@ -51,31 +56,26 @@ import { LayoutDashboard, LogOut } from 'lucide-vue-next';
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center; 
+  gap: 1px;
   margin-bottom: 2.5rem;
   padding: 0 0.5rem;
 }
 
-.brand-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+
+.brand img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
 }
 
 .brand-text {
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.5px;
-  background: linear-gradient(to right, white, #94a3b8);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: rgba(31, 192, 16, 0.584);
+  text-align: center;
 }
 
 .nav-menu {
@@ -91,21 +91,21 @@ import { LayoutDashboard, LogOut } from 'lucide-vue-next';
   gap: 12px;
   padding: 12px 16px;
   border-radius: var(--radius-md);
-  color: var(--color-text-soft);
+  color: rgba(36, 221, 19, 0.833);
   font-weight: 500;
   transition: var(--transition);
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--color-text-main);
+  background: rgba(116, 232, 6, 0.05);
+  color: rgba(36, 221, 19, 0.833);
   transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: linear-gradient(to right, rgba(99, 102, 241, 0.2), transparent);
-  color: var(--color-primary);
-  border-left: 3px solid var(--color-primary);
+  background: linear-gradient(to left, rgba(99, 102, 241, 0.2), transparent);
+  color: rgba(36, 221, 19, 0.833);
+  border-left: 3px solid rgba(36, 221, 19, 0.833);
 }
 
 .bottom-menu {
@@ -174,49 +174,80 @@ import { LayoutDashboard, LogOut } from 'lucide-vue-next';
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 100%;
-    height: auto;
-    bottom: 0;
-    top: auto;
+    width: 280px;
+    height: 100vh;
+    transform: translateX(-100%);
+    top: 0;
     left: 0;
-    flex-direction: row;
-    border-right: none;
-    border-top: 1px solid var(--color-border);
-    padding: 0.5rem;
-    justify-content: center;
-    background: var(--color-bg-soft);
+    bottom: auto;
+    flex-direction: column;
+    border-right: 1px solid var(--color-border);
+    border-top: none;
+    padding: 1rem;
+    justify-content: flex-start;
+    z-index: 100;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
   }
   
   .brand, .bottom-menu {
-    display: none;
+    display: flex; 
   }
-  
+
+  .brand {
+    position: relative;
+    padding-right: 20px;
+  }
+
   .nav-menu {
-    flex-direction: row;
-    justify-content: space-around;
+    flex-direction: column;
+    justify-content: flex-start;
     width: 100%;
     margin: 0;
   }
   
   .nav-item {
-    justify-content: center;
-    padding: 10px;
-    border-radius: 50%;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
   }
 
   .nav-item span {
-    display: none;
+    display: inline;
   }
   
   .nav-item.active {
-    border-left: none;
-    background: rgba(99, 102, 241, 0.2);
-    color: var(--color-primary);
+    border-left: 3px solid rgba(36, 221, 19, 0.833);
+    background: linear-gradient(to left, rgba(99, 102, 241, 0.2), transparent);
   }
   
-  .nav-item:hover {
-    transform: none;
-    background: rgba(255, 255, 255, 0.05);
+  .mobile-only {
+    display: block;
   }
+}
+
+.mobile-only {
+  display: none;
+}
+
+.close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: var(--color-text-mute);
+  padding: 4px;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+  backdrop-filter: blur(2px);
 }
 </style>

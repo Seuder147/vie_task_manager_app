@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Task, Project } from '../types';
+import type { Task } from '../types';
 
 export const useTaskStore = defineStore('taskStore', () => {
   // State
@@ -21,11 +21,6 @@ export const useTaskStore = defineStore('taskStore', () => {
       priority: 'high',
       createdAt: Date.now()
     },
-  ]);
-
-  const projects = ref<Project[]>([
-    { id: 'p1', name: 'Main App', color: '#6366f1', icon: 'app' },
-    { id: 'p2', name: 'Website', color: '#10b981', icon: 'globe' }
   ]);
 
   // Actions
@@ -59,7 +54,6 @@ export const useTaskStore = defineStore('taskStore', () => {
 
   return {
     tasks,
-    projects,
     addTask,
     updateTaskStatus,
     deleteTask,

@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
+import { useLocalStorage } from '../composables/useLocalStorage';
 import type { Task } from '../types';
 
 export const useTaskStore = defineStore('taskStore', () => {
-  // State
-  const tasks = ref<Task[]>([
+  const defaultTasks: Task[] = [
     {
       id: '1',
       title: 'Design System',
@@ -21,7 +21,9 @@ export const useTaskStore = defineStore('taskStore', () => {
       priority: 'high',
       createdAt: Date.now()
     },
-  ]);
+  ];
+
+  const tasks = useLocalStorage<Task[]>('tasks', defaultTasks);
 
   // Actions
   function addTask(task: Omit<Task, 'id' | 'createdAt'>) {

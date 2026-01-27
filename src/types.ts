@@ -9,3 +9,10 @@ export interface Task {
   priority: TaskPriority;
   createdAt: number;
 }
+
+export type UpdateTaskPayload = {
+  title: string
+  description: string
+  priority: Task['priority']
+  status: TaskStatus
+}

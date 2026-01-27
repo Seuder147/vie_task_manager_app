@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { Task } from '../types';
+import type { Task, TaskStatus } from '../types';
+
+  export type UpdateTaskPayload = {
+  title: string
+  description: string
+  status: TaskStatus
+  priority: Task['priority']
+}
 
 export const useTaskStore = defineStore('taskStore', () => {
   // State
@@ -43,6 +50,18 @@ export const useTaskStore = defineStore('taskStore', () => {
     tasks.value = tasks.value.filter(t => t.id !== id);
   }
 
+  // add update to task menu
+ function updateTask(id: string, payload: UpdateTaskPayload){
+    const t = tasks.value.find(t => t.id === id)
+    if (!t) return
+    t.title = payload.title
+    t.description = payload.description
+    t.status = payload.status
+    t.priority = payload.priority
+
+  }
+
+
   // Getters
   const tasksByStatus = computed(() => {
     return {
@@ -57,6 +76,7 @@ export const useTaskStore = defineStore('taskStore', () => {
     addTask,
     updateTaskStatus,
     deleteTask,
-    tasksByStatus
+    tasksByStatus,
+    updateTask
   };
 });

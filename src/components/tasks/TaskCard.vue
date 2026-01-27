@@ -1,13 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { Clock, MoreHorizontal, Trash2 } from 'lucide-vue-next';
 import type { Task, TaskStatus } from '@/types';
 import { useTaskStore } from '@/stores/taskStore';
 
-defineProps<{ task: Task }>();
+const props = defineProps<{ task: Task }>();
 
 const store = useTaskStore();
 const showMenu = ref(false);
+
+// edit modal state
+const showEdit = ref(false);
+
+// edit form fields (typed)
+const editTitle = ref('');
+const editDescription = ref('');
+const editStatus = ref<TaskStatus>('todo');
+const editPriority = ref<Task['priority']>('low');
 
 const toggleMenu = (e: Event) => {
   e.stopPropagation(); // prevent modal opening if card click logic exists
@@ -23,6 +32,49 @@ const removeTask = (id: string) => {
   if (confirm('Are you sure you want to delete this task?')) {
     store.deleteTask(id);
   }
+};
+
+// open edit modal
+const openEdit = (e: Event) => {
+  e.stopPropagation();
+  showMenu.value = false;
+  showEdit.value = true;
+};
+
+// when modal opens - fill fields from task
+watch(
+  () => showEdit.value,
+  (isOpen) => {
+    if (!isOpen) return;
+
+    editTitle.value = props.task.title;
+    editDescription.value = props.task.description ?? '';
+    editStatus.value = props.task.status;
+    editPriority.value = props.task.priority;
+  }
+);
+
+const closeEdit = () => {
+  showEdit.value = false;
+};
+
+const saveEdit = () => {
+  const title = editTitle.value.trim();
+
+  if (title.length < 3) {
+    alert('Title must be at least 3 characters');
+    return;
+  }
+
+  // call store update
+  store.updateTask(props.task.id, {
+    title,
+    description: editDescription.value.trim(),
+    status: editStatus.value,
+    priority: editPriority.value,
+  });
+
+  closeEdit();
 };
 </script>
 
@@ -49,6 +101,13 @@ const removeTask = (id: string) => {
             Done
           </button>
           <div class="divider"></div>
+
+          <!--Edit button-->
+          <button class="edit-btn" @click.stop="openEdit"> 
+            <Pencil :size="14" />
+            Edit
+          </button>
+
           <button class="delete-btn" @click.stop="removeTask(task.id)">
             <Trash2 :size="14" />
             Delete
@@ -71,6 +130,53 @@ const removeTask = (id: string) => {
       
       <div class="avatars">
         <div class="mini-avatar">JD</div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div v-if="showEdit" class="modal-backdrop" @click="closeEdit">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h3 class="modal-title">Edit task</h3>
+          <button class="modal-close" @click="closeEdit">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <label class="field">
+            <span>Title</span>
+            <input v-model="editTitle" type="text" />
+          </label>
+
+          <label class="field">
+            <span>Description</span>
+            <textarea v-model="editDescription" rows="4"></textarea>
+          </label>
+
+          <div class="row">
+            <label class="field">
+              <span>Status</span>
+              <select v-model="editStatus">
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Priority</span>
+              <select v-model="editPriority">
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" type="button" @click="closeEdit">Cancel</button>
+          <button class="btn-primary" type="button" @click="saveEdit">Save</button>
+        </div>
       </div>
     </div>
   </div>
@@ -264,5 +370,125 @@ const removeTask = (id: string) => {
   width: 100vw;
   height: 100vh;
   z-index: 10;
+}
+
+/* Edit button in menu */
+.edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal {
+  width: min(520px, 100%);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 14px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.modal-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.modal-close {
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--color-text-mute);
+}
+
+.modal-close:hover {
+  background: var(--color-bg-soft);
+  color: var(--color-text-main);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field span {
+  font-size: 0.8rem;
+  color: var(--color-text-mute);
+}
+
+.field input,
+.field textarea,
+.field select {
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--color-text-main);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn-secondary {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-soft);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg-mute);
+}
+
+.btn-primary {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
 }
 </style>

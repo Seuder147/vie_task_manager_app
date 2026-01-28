@@ -16,7 +16,8 @@ The app allows users to create, edit, and organize tasks using a Kanban-style bo
 ## Live Application
 
 👉 **Live Demo:**  
-*(add deployment link here, e.g. Netlify / Vercel)*
+
+deployment link here :
 
 ---
 
@@ -78,6 +79,8 @@ cd vie_task_manager_app
 npm install
 
 4. Start the development server:
+
+npm run server
 
 npm run dev
 

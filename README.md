@@ -17,7 +17,7 @@ The app allows users to create, edit, and organize tasks using a Kanban-style bo
 
 👉 **Live Demo:**  
 
-deployment link here :
+https://vietaskmanagerapp.vercel.app/
 
 ---
 

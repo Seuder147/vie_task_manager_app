@@ -2,10 +2,11 @@
 import { useForm, useField } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
-import type { Task } from '@/types';
+import type { Task, TaskStatus } from '@/types';
 
 const props = defineProps<{
   initialData?: Task;
+  initialStatus?: TaskStatus; // New prop
 }>();
 
 const emit = defineEmits<{
@@ -28,7 +29,7 @@ const { handleSubmit, errors, isSubmitting } = useForm({
     title: props.initialData?.title || '',
     description: props.initialData?.description || '',
     priority: props.initialData?.priority || 'medium',
-    status: props.initialData?.status || 'todo'
+    status: props.initialData?.status || props.initialStatus || 'todo'
   }
 });
 

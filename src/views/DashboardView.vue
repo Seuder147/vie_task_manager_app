@@ -16,8 +16,10 @@ onMounted(() => {
 
 // Modal State
 const isModalOpen = ref(false);
+const openInitialStatus = ref<TaskStatus>('todo');
 
-const openNewTaskModal = () => {
+const openNewTaskModal = (status: TaskStatus = 'todo') => {
+  openInitialStatus.value = status;
   isModalOpen.value = true;
 };
 
@@ -72,7 +74,7 @@ const setTab = (tab: TaskStatus) => {
           <input type="text" placeholder="Search tasks..." />
         </div>
         
-        <button class="btn-primary" @click="openNewTaskModal">
+        <button class="btn-primary" @click="openNewTaskModal('todo')">
           <Plus :size="18" />
           <span>New Task</span>
         </button>
@@ -122,7 +124,7 @@ const setTab = (tab: TaskStatus) => {
         statusColor="#94a3b8"
         class="col-todo"
         :class="{ 'mobile-hidden': activeTab !== 'todo' }"
-        @add-task="openNewTaskModal"
+        @add-task="openNewTaskModal('todo')"
       />
       <TaskColumn 
         title="In Progress" 
@@ -131,7 +133,7 @@ const setTab = (tab: TaskStatus) => {
         statusColor="#6366f1"
         class="col-progress"
         :class="{ 'mobile-hidden': activeTab !== 'in-progress' }"
-        @add-task="openNewTaskModal"
+        @add-task="openNewTaskModal('in-progress')"
       />
       <TaskColumn 
         title="Completed" 
@@ -140,7 +142,7 @@ const setTab = (tab: TaskStatus) => {
         statusColor="#10b981"
         class="col-done"
         :class="{ 'mobile-hidden': activeTab !== 'done' }"
-        @add-task="openNewTaskModal"
+        @add-task="openNewTaskModal('done')"
       />
     </div>
 
@@ -150,7 +152,11 @@ const setTab = (tab: TaskStatus) => {
       title="Create New Task"
       @close="isModalOpen = false"
     >
-      <TaskForm @submit="handleTaskSubmit" @cancel="isModalOpen = false" />
+      <TaskForm 
+        :initial-status="openInitialStatus" 
+        @submit="handleTaskSubmit" 
+        @cancel="isModalOpen = false" 
+      />
     </BaseModal>
   </main>
 </template>

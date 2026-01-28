@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref,watch } from 'vue';
-import { Clock, MoreHorizontal, Trash2 } from 'lucide-vue-next';
+import { ref, watch, onUnmounted } from 'vue';
+import { Clock, MoreHorizontal, Trash2, Pencil } from 'lucide-vue-next';
 import type { Task, TaskStatus } from '@/types';
 import { useTaskStore } from '@/stores/taskStore';
 
@@ -8,6 +8,29 @@ const props = defineProps<{ task: Task }>();
 
 const store = useTaskStore();
 const showMenu = ref(false);
+
+// Window click handler to close menu
+const handleWindowClick = () => {
+  if (showMenu.value) {
+    showMenu.value = false;
+  }
+};
+
+// Add/remove listener based on menu state to optimize
+watch(showMenu, (isOpen) => {
+  if (isOpen) {
+    // Timeout ensures the current click doesn't trigger this immediately
+    setTimeout(() => {
+      window.addEventListener('click', handleWindowClick);
+    }, 0);
+  } else {
+    window.removeEventListener('click', handleWindowClick);
+  }
+});
+
+onUnmounted(() => {
+  window.removeEventListener('click', handleWindowClick);
+});
 
 // edit modal state
 const showEdit = ref(false);
@@ -114,8 +137,6 @@ const saveEdit = () => {
           </button>
         </div>
         
-        <!-- Backdrop to close menu -->
-        <div v-if="showMenu" class="menu-backdrop" @click.stop="showMenu = false"></div>
       </div>
     </div>
     
@@ -363,14 +384,7 @@ const saveEdit = () => {
   background: rgba(239, 68, 68, 0.1) !important;
 }
 
-.menu-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 10;
-}
+
 
 /* Edit button in menu */
 .edit-btn {

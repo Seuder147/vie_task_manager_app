@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Task, TaskStatus } from '../types';
+import { taskService } from '../services/taskService';
 
-  export type UpdateTaskPayload = {
+export type UpdateTaskPayload = {
   title: string
   description: string
   status: TaskStatus
@@ -11,54 +12,94 @@ import type { Task, TaskStatus } from '../types';
 
 export const useTaskStore = defineStore('taskStore', () => {
   // State
-  const tasks = ref<Task[]>([
-    {
-      id: '1',
-      title: 'Design System',
-      description: 'Create a consistent set of UI components and color palette.',
-      status: 'done',
-      priority: 'high',
-      createdAt: Date.now()
-    },
-    {
-      id: '2',
-      title: 'Implement Authentication',
-      description: 'Setup basic login and register flow using mock API.',
-      status: 'in-progress',
-      priority: 'high',
-      createdAt: Date.now()
-    },
-  ]);
+  const tasks = ref<Task[]>([]);
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
 
   // Actions
-  function addTask(task: Omit<Task, 'id' | 'createdAt'>) {
-    tasks.value.push({
-      ...task,
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-      createdAt: Date.now()
-    });
-  }
-
-  function updateTaskStatus(id: string, status: Task['status']) {
-    const task = tasks.value.find(t => t.id === id);
-    if (task) {
-      task.status = status;
+  async function fetchTasks() {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      tasks.value = await taskService.getTasks();
+    } catch (err) {
+      error.value = 'Failed to fetch tasks';
+      console.error(err);
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  function deleteTask(id: string) {
+  async function addTask(task: Omit<Task, 'id' | 'createdAt'>) {
+    isLoading.value = true;
+    error.value = null;
+    try {
+      const newTask = await taskService.createTask(task);
+      tasks.value.push(newTask);
+    } catch (err) {
+      error.value = 'Failed to add task';
+      console.error(err);
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  async function updateTaskStatus(id: string, status: Task['status']) {
+    // Optimistic update
+    const task = tasks.value.find(t => t.id === id);
+    const previousStatus = task?.status;
+    
+    if (task) {
+      task.status = status;
+    }
+
+    try {
+      await taskService.updateTaskStatus(id, status);
+    } catch (err) {
+      // Revert on failure
+      if (task && previousStatus) {
+        task.status = previousStatus;
+      }
+      error.value = 'Failed to update task status';
+      console.error(err);
+    }
+  }
+
+  async function deleteTask(id: string) {
+    // Optimistic update
+    const previousTasks = [...tasks.value];
     tasks.value = tasks.value.filter(t => t.id !== id);
+
+    try {
+      await taskService.deleteTask(id);
+    } catch (err) {
+      tasks.value = previousTasks;
+      error.value = 'Failed to delete task';
+      console.error(err);
+    }
   }
 
   // add update to task menu
- function updateTask(id: string, payload: UpdateTaskPayload){
-    const t = tasks.value.find(t => t.id === id)
-    if (!t) return
-    t.title = payload.title
-    t.description = payload.description
-    t.status = payload.status
-    t.priority = payload.priority
+ async function updateTask(id: string, payload: UpdateTaskPayload){
+    const task = tasks.value.find(t => t.id === id);
+    if (!task) return;
+    
+    const previousTask = { ...task };
+    
+    // Optimistic update
+    task.title = payload.title;
+    task.description = payload.description;
+    task.status = payload.status;
+    task.priority = payload.priority;
 
+    try {
+      await taskService.updateTask(id, payload);
+    } catch (err) {
+      // Revert
+      Object.assign(task, previousTask);
+      error.value = 'Failed to update task';
+      console.error(err);
+    }
   }
 
 
@@ -73,6 +114,9 @@ export const useTaskStore = defineStore('taskStore', () => {
 
   return {
     tasks,
+    isLoading,
+    error,
+    fetchTasks,
     addTask,
     updateTaskStatus,
     deleteTask,

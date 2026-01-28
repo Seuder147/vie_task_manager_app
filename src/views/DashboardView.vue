@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useTaskStore } from '@/stores/taskStore';
 import TaskColumn from '@/components/tasks/TaskColumn.vue';
-import { Plus, Search } from 'lucide-vue-next';
+import { Plus, Search, Loader2, AlertCircle } from 'lucide-vue-next';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import TaskForm from '@/components/tasks/TaskForm.vue';
 import type { Task, TaskStatus } from '@/types';
 
 const store = useTaskStore();
+
+// Fetch tasks on mount
+onMounted(() => {
+  store.fetchTasks();
+});
 
 // Modal State
 const isModalOpen = ref(false);
@@ -16,7 +21,7 @@ const openNewTaskModal = () => {
   isModalOpen.value = true;
 };
 
-const handleTaskSubmit = (values: any) => {
+const handleTaskSubmit = (values: Omit<Task, 'id' | 'createdAt'>) => {
   store.addTask(values);
   isModalOpen.value = false;
 };
@@ -96,8 +101,20 @@ const setTab = (tab: TaskStatus) => {
       </button>
     </div>
 
+    <!-- Error State -->
+    <div v-if="store.error" class="error-container">
+      <AlertCircle class="text-danger" />
+      <p>{{ store.error }}</p>
+      <button @click="store.fetchTasks()" class="btn-retry">Retry</button>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="store.isLoading" class="loading-container">
+      <Loader2 class="animate-spin text-primary" :size="48" />
+    </div>
+
     <!-- Kanban Board -->
-    <div class="board-container">
+    <div v-else class="board-container">
       <TaskColumn 
         title="To Do" 
         v-model:tasks="todoList" 
@@ -241,6 +258,60 @@ h1 {
 /* Default: Hide mobile tabs on desktop */
 .mobile-tabs {
   display: none;
+}
+
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  gap: 1rem;
+  color: var(--color-text-soft);
+}
+
+.error-container {
+  color: var(--color-danger);
+  text-align: center;
+}
+
+.btn-retry {
+  padding: 8px 16px;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.btn-retry:hover {
+  background: var(--color-bg-mute);
+  color: var(--color-text-main);
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-danger {
+  color: var(--color-danger);
 }
 
 @media (max-width: 768px) {

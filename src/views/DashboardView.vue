@@ -1,29 +1,19 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useTaskStore } from '@/stores/taskStore';
-import { useUIStore } from '@/stores/ui';
 import TaskColumn from '@/components/tasks/TaskColumn.vue';
-import { Plus, Search, Menu } from 'lucide-vue-next';
+import { Plus, Search } from 'lucide-vue-next';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import TaskForm from '@/components/tasks/TaskForm.vue';
 import type { Task, TaskStatus } from '@/types';
 
 const store = useTaskStore();
-const uiStore = useUIStore();
 
 // Modal State
 const isModalOpen = ref(false);
-const initialTaskData = ref<Partial<Task> | undefined>(undefined);
-const searchQuery = ref('');
 
-const openNewTaskModal = (status?: TaskStatus) => {
-  initialTaskData.value = status ? { status } : undefined;
+const openNewTaskModal = () => {
   isModalOpen.value = true;
-};
-
-const closeNewTaskModal = () => {
-  isModalOpen.value = false;
-  initialTaskData.value = undefined;
 };
 
 const handleTaskSubmit = (values: any) => {
@@ -40,27 +30,18 @@ const updateTasks = (newTasks: Task[], status: TaskStatus) => {
   });
 };
 
-const filterTasks = (tasks: Task[]) => {
-  if (!searchQuery.value) return tasks;
-  const query = searchQuery.value.toLowerCase();
-  return tasks.filter(t => 
-    t.title.toLowerCase().includes(query) || 
-    t.description.toLowerCase().includes(query)
-  );
-};
-
 const todoList = computed({
-  get: () => filterTasks(store.tasks.filter(t => t.status === 'todo')),
+  get: () => store.tasks.filter(t => t.status === 'todo'),
   set: (val) => updateTasks(val, 'todo')
 });
 
 const inProgressList = computed({
-  get: () => filterTasks(store.tasks.filter(t => t.status === 'in-progress')),
+  get: () => store.tasks.filter(t => t.status === 'in-progress'),
   set: (val) => updateTasks(val, 'in-progress')
 });
 
 const doneList = computed({
-  get: () => filterTasks(store.tasks.filter(t => t.status === 'done')),
+  get: () => store.tasks.filter(t => t.status === 'done'),
   set: (val) => updateTasks(val, 'done')
 });
 
@@ -76,23 +57,19 @@ const setTab = (tab: TaskStatus) => {
     <!-- Header Section -->
     <header class="top-bar">
       <div class="greeting">
-        <button class="menu-btn mobile-only" @click="uiStore.openSidebar">
-          <Menu :size="24" />
-        </button>
-        <div class="greeting-text">
-          <h1>Multi Tasking</h1>
-          <p class="subtitle">Manage and track your everyday tasks</p>
-        </div>
+        <h1>Task Board</h1>
+        <p class="subtitle">Manage and track your tasks</p>
       </div>
 
       <div class="actions">
         <div class="search-box">
           <Search :size="18" />
-          <input type="text" placeholder="Search tasks..." v-model="searchQuery" />
+          <input type="text" placeholder="Search tasks..." />
         </div>
         
-        <button class="btn-primary" @click="openNewTaskModal()">
-          <Plus :size="18" /> <span>New Task</span>
+        <button class="btn-primary" @click="openNewTaskModal">
+          <Plus :size="18" />
+          <span>New Task</span>
         </button>
       </div>
     </header>
@@ -128,7 +105,7 @@ const setTab = (tab: TaskStatus) => {
         statusColor="#94a3b8"
         class="col-todo"
         :class="{ 'mobile-hidden': activeTab !== 'todo' }"
-        @add-task="openNewTaskModal('todo')"
+        @add-task="openNewTaskModal"
       />
       <TaskColumn 
         title="In Progress" 
@@ -137,7 +114,7 @@ const setTab = (tab: TaskStatus) => {
         statusColor="#6366f1"
         class="col-progress"
         :class="{ 'mobile-hidden': activeTab !== 'in-progress' }"
-        @add-task="openNewTaskModal('in-progress')"
+        @add-task="openNewTaskModal"
       />
       <TaskColumn 
         title="Completed" 
@@ -146,7 +123,7 @@ const setTab = (tab: TaskStatus) => {
         statusColor="#10b981"
         class="col-done"
         :class="{ 'mobile-hidden': activeTab !== 'done' }"
-        @add-task="openNewTaskModal('done')"
+        @add-task="openNewTaskModal"
       />
     </div>
 
@@ -156,11 +133,7 @@ const setTab = (tab: TaskStatus) => {
       title="Create New Task"
       @close="isModalOpen = false"
     >
-      <TaskForm 
-        :initial-data="initialTaskData" 
-        @submit="handleTaskSubmit" 
-        @cancel="closeNewTaskModal" 
-      />
+      <TaskForm @submit="handleTaskSubmit" @cancel="isModalOpen = false" />
     </BaseModal>
   </main>
 </template>
@@ -197,7 +170,7 @@ h1 {
   display: flex;
   gap: 1rem;
   align-items: center;
-  padding-right: 0.5rem;
+  padding-right: 0.5rem; /* Ensure button isn't touching the edge */
 }
 
 .search-box {
@@ -214,9 +187,9 @@ h1 {
 }
 
 .search-box:focus-within {
-  border-color: rgba(102, 235, 14, 0.614);
+  border-color: var(--color-primary);
   color: var(--color-text-main);
-  box-shadow: 0 0 0 2px rgba(102, 235, 14, 0.2);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 
@@ -232,7 +205,7 @@ h1 {
 }
 
 .btn-primary {
-  background: rgba(193, 223, 173, 0.614);
+  background: var(--color-primary);
   color: white;
   padding: 10px 20px;
   border-radius: var(--radius-md);
@@ -242,11 +215,11 @@ h1 {
   gap: 8px;
   transition: var(--transition);
   box-shadow: var(--shadow-glow);
-  margin-right: 8px;
+  margin-right: 8px; /* Move slightly left */
 }
 
 .btn-primary:hover {
-  background: rgba(110, 231, 17, 0.614);
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
 }
 
@@ -256,74 +229,60 @@ h1 {
   flex: 1;
   overflow-x: auto;
   padding-bottom: 1rem;
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x mandatory; /* Enable snap scrolling */
   -webkit-overflow-scrolling: touch;
 }
 
 
 .board-container > * {
-  scroll-snap-align: start;
+  scroll-snap-align: start; /* Snap columns to start */
 }
 
+/* Default: Hide mobile tabs on desktop */
 .mobile-tabs {
   display: none;
 }
 
 @media (max-width: 768px) {
   .dashboard-view {
-    padding: 0.5rem; 
+    padding: 1rem;
     height: auto;
     min-height: calc(100vh - 80px);
   }
 
   .top-bar {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    flex-wrap: nowrap; 
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
   
   .greeting {
-    width: auto;
-    flex-shrink: 0;
+    width: 100%;
   }
 
-  .greeting-text {
-    display: none;
-  }
-  
   .actions {
     width: 100%;
-    margin-top: 0; 
-    justify-content: flex-end; 
-    padding-right: 0;
-    gap: 8px;
-    flex: 1; 
+    margin-top: 0.5rem;
+    justify-content: space-between;
+    padding-right: 0.5rem; /* Ensure button isn't touching the edge */
   }
 
   .search-box {
     width: auto;
-    flex: 1; 
-    min-width: 0;
-    max-width: none; 
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
   }
   
   .btn-primary {
     flex-shrink: 0;
-    margin-right: 0;
-    padding: 8px; 
-  }
-
-  .btn-primary span {
-    display: none; 
+    margin-right: 8px; /* Move slightly left */
   }
   
   /* Mobile Board Layout */
   .board-container {
-    display: block;
+    display: block; /* Stack (but we hide inactive columns) */
     overflow-x: hidden;
-    padding-bottom: 60px; 
+    padding-bottom: 60px; /* Extra space for bottom tab bar if needed */
   }
 
   .mobile-hidden {
@@ -354,16 +313,6 @@ h1 {
     background: var(--color-bg-mute);
     color: var(--color-text-main);
     box-shadow: var(--shadow-sm);
-  }
-}
-
-.mobile-only {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .mobile-only {
-    display: block;
   }
 }
 </style>

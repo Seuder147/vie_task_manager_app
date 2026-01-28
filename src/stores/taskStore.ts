@@ -1,10 +1,17 @@
 import { defineStore } from 'pinia';
-import { computed } from 'vue';
-import { useLocalStorage } from '../composables/useLocalStorage';
-import type { Task } from '../types';
+import { ref, computed } from 'vue';
+import type { Task, TaskStatus } from '../types';
+
+  export type UpdateTaskPayload = {
+  title: string
+  description: string
+  status: TaskStatus
+  priority: Task['priority']
+}
 
 export const useTaskStore = defineStore('taskStore', () => {
-  const defaultTasks: Task[] = [
+  // State
+  const tasks = ref<Task[]>([
     {
       id: '1',
       title: 'Design System',
@@ -21,9 +28,7 @@ export const useTaskStore = defineStore('taskStore', () => {
       priority: 'high',
       createdAt: Date.now()
     },
-  ];
-
-  const tasks = useLocalStorage<Task[]>('tasks', defaultTasks);
+  ]);
 
   // Actions
   function addTask(task: Omit<Task, 'id' | 'createdAt'>) {
@@ -45,6 +50,18 @@ export const useTaskStore = defineStore('taskStore', () => {
     tasks.value = tasks.value.filter(t => t.id !== id);
   }
 
+  // add update to task menu
+ function updateTask(id: string, payload: UpdateTaskPayload){
+    const t = tasks.value.find(t => t.id === id)
+    if (!t) return
+    t.title = payload.title
+    t.description = payload.description
+    t.status = payload.status
+    t.priority = payload.priority
+
+  }
+
+
   // Getters
   const tasksByStatus = computed(() => {
     return {
@@ -59,6 +76,7 @@ export const useTaskStore = defineStore('taskStore', () => {
     addTask,
     updateTaskStatus,
     deleteTask,
-    tasksByStatus
+    tasksByStatus,
+    updateTask
   };
 });

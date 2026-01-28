@@ -7,7 +7,7 @@ import { storeToRefs } from 'pinia';
 import type { Task } from '@/types';
 
 const props = defineProps<{
-  initialData?: Partial<Task>;
+  initialData?: Task;
 }>();
 
 const emit = defineEmits<{
@@ -23,7 +23,7 @@ const schema = toTypedSchema(z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(1, 'Description is required'),
   priority: z.enum(['low', 'medium', 'high']),
-  status: z.enum(['todo', 'in-progress', 'done']) 
+  status: z.enum(['todo', 'in-progress', 'done']) // Added status for editing scenario
 }));
 
 // Form Setup
@@ -79,6 +79,7 @@ const handleFormSubmit = handleSubmit((values) => {
 
 
     <div class="row">
+      
 
       <!-- Priority -->
       <div class="form-group">

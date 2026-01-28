@@ -2,8 +2,6 @@
 import { useForm, useField } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
-import { useTaskStore } from '@/stores/taskStore';
-import { storeToRefs } from 'pinia';
 import type { Task } from '@/types';
 
 const props = defineProps<{
@@ -11,12 +9,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: 'submit', values: any): void;
+  (e: 'submit', values: Omit<Task, 'id' | 'createdAt'>): void;
   (e: 'cancel'): void;
 }>();
-
-
-const store = useTaskStore();
 
 // Validation Schema
 const schema = toTypedSchema(z.object({

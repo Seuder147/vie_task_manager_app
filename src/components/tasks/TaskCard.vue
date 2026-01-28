@@ -3,6 +3,7 @@ import { ref, watch, onUnmounted } from 'vue';
 import { Clock, MoreHorizontal, Trash2, Pencil } from 'lucide-vue-next';
 import type { Task, TaskStatus } from '@/types';
 import { useTaskStore } from '@/stores/taskStore';
+import BaseModal from '@/components/ui/BaseModal.vue';
 
 const props = defineProps<{ task: Task }>();
 
@@ -155,43 +156,40 @@ const saveEdit = () => {
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="showEdit" class="modal-backdrop" @click="closeEdit">
-      <div class="modal" @click.stop>
-        <div class="modal-header">
-          <h3 class="modal-title">Edit task</h3>
-          <button class="modal-close" @click="closeEdit">✕</button>
-        </div>
+    <BaseModal 
+      :is-open="showEdit" 
+      title="Edit task"
+      @close="closeEdit"
+    >
+      <div class="edit-form">
+        <label class="field">
+          <span>Title</span>
+          <input v-model="editTitle" type="text" />
+        </label>
 
-        <div class="modal-body">
+        <label class="field">
+          <span>Description</span>
+          <textarea v-model="editDescription" rows="4"></textarea>
+        </label>
+
+        <div class="row">
           <label class="field">
-            <span>Title</span>
-            <input v-model="editTitle" type="text" />
+            <span>Status</span>
+            <select v-model="editStatus">
+              <option value="todo">To Do</option>
+              <option value="in-progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
           </label>
 
           <label class="field">
-            <span>Description</span>
-            <textarea v-model="editDescription" rows="4"></textarea>
+            <span>Priority</span>
+            <select v-model="editPriority">
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high</option>
+            </select>
           </label>
-
-          <div class="row">
-            <label class="field">
-              <span>Status</span>
-              <select v-model="editStatus">
-                <option value="todo">To Do</option>
-                <option value="in-progress">In Progress</option>
-                <option value="done">Done</option>
-              </select>
-            </label>
-
-            <label class="field">
-              <span>Priority</span>
-              <select v-model="editPriority">
-                <option value="low">low</option>
-                <option value="medium">medium</option>
-                <option value="high">high</option>
-              </select>
-            </label>
-          </div>
         </div>
 
         <div class="modal-footer">
@@ -199,7 +197,7 @@ const saveEdit = () => {
           <button class="btn-primary" type="button" @click="saveEdit">Save</button>
         </div>
       </div>
-    </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -394,50 +392,8 @@ const saveEdit = () => {
 }
 
 /* Modal */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background: rgba(0, 0, 0, 0.55);
-  display: grid;
-  place-items: center;
-  padding: 16px;
-}
-
-.modal {
-  width: min(520px, 100%);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  padding: 14px;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.modal-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--color-text-main);
-}
-
-.modal-close {
-  padding: 4px 8px;
-  border-radius: 6px;
-  color: var(--color-text-mute);
-}
-
-.modal-close:hover {
-  background: var(--color-bg-soft);
-  color: var(--color-text-main);
-}
-
-.modal-body {
+/* Edit Form */
+.edit-form {
   display: flex;
   flex-direction: column;
   gap: 10px;

@@ -218,7 +218,6 @@ const saveEdit = () => {
 /* ... existing styles ... */
 
 .task-card:hover {
-  transform: translateY(-2px);
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
 }
